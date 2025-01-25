@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"mime"
@@ -54,7 +56,15 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 	}
 
 	ext, _ := mime.ExtensionsByType(mediaType)
-	assetPath := getAssetPath(videoID, ext[0])
+
+	randId := make([]byte, 32)
+	_, err = rand.Read(randId)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Unable to create file on server", err)
+		return
+	}
+
+	assetPath := getAssetPath(base64.RawURLEncoding.EncodeToString(randId), ext[0])
 
 	// data, err := io.ReadAll(file)
 	// if err != nil {
