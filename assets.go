@@ -25,6 +25,21 @@ func (cfg apiConfig) getAssetURL(assetPath string) string {
 	return fmt.Sprintf("http://localhost:%s/assets/%s", cfg.port, assetPath)
 }
 
+func (cfg apiConfig) getS3Key(videoID, aspectRatio, ext string) string {
+
+	var prefix string
+	switch aspectRatio {
+	case "16:9":
+		prefix = "landscape"
+	case "9:16":
+		prefix = "portrait"
+	case "other":
+		prefix = "other"
+	}
+
+	return fmt.Sprintf("%s/%s%s", prefix, videoID, ext)
+}
+
 func (cfg apiConfig) getS3URL(assetKey string) string {
 	return fmt.Sprintf(
 		"https://%s.s3.%s.amazonaws.com/%s",

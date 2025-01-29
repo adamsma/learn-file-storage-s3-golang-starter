@@ -10,6 +10,7 @@ import (
 	"os"
 	"slices"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/bootdotdev/learn-file-storage-s3-golang-starter/internal/auth"
 	"github.com/google/uuid"
@@ -90,6 +91,13 @@ func (cfg *apiConfig) handlerUploadVideo(w http.ResponseWriter, r *http.Request)
 	// allow read file from beginning
 	asset.Seek(0, io.SeekStart)
 
+	// determine aspect raio
+	ratio, err := getVideoAspectRatio(asset.Name())
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Unable to determine aspect ratio", err)
+		return
+	}
+
 	// upload to S3
 	opts, _ := mime.ExtensionsByType(mediaType)
 	ext := opts[0]
@@ -104,18 +112,18 @@ func (cfg *apiConfig) handlerUploadVideo(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	assetPath := getAssetPath(base64.RawURLEncoding.EncodeToString(randId), ext)
+	assetKey := cfg.getS3Key(base64.RawURLEncoding.EncodeToString(randId), ratio, ext)
 
 	params := s3.PutObjectInput{
-		Bucket:      &cfg.s3Bucket,
-		Key:         &assetPath,
+		Bucket:      aws.String(cfg.s3Bucket),
+		Key:         aws.String(assetKey),
 		Body:        asset,
-		ContentType: &mediaType,
+		ContentType: aws.String(mediaType),
 	}
 	cfg.s3Client.PutObject(r.Context(), &params)
 
 	// update metadata
-	videoURL := cfg.getS3URL(assetPath)
+	videoURL := cfg.getS3URL(assetKey)
 	videoMeta.VideoURL = &videoURL
 	err = cfg.db.UpdateVideo(videoMeta)
 	if err != nil {
