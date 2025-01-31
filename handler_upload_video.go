@@ -98,6 +98,21 @@ func (cfg *apiConfig) handlerUploadVideo(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	// encode for fast start
+	fastPath, err := processVideoForFastStart(asset.Name())
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Unable to encode for faststart", err)
+		return
+	}
+	defer os.Remove(fastPath)
+
+	fastFile, err := os.Open(fastPath)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Unable to load faststart file", err)
+		return
+	}
+	defer fastFile.Close()
+
 	// upload to S3
 	opts, _ := mime.ExtensionsByType(mediaType)
 	ext := opts[0]
@@ -117,7 +132,7 @@ func (cfg *apiConfig) handlerUploadVideo(w http.ResponseWriter, r *http.Request)
 	params := s3.PutObjectInput{
 		Bucket:      aws.String(cfg.s3Bucket),
 		Key:         aws.String(assetKey),
-		Body:        asset,
+		Body:        fastFile,
 		ContentType: aws.String(mediaType),
 	}
 	cfg.s3Client.PutObject(r.Context(), &params)
