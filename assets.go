@@ -40,9 +40,6 @@ func (cfg apiConfig) getS3Key(videoID, aspectRatio, ext string) string {
 	return fmt.Sprintf("%s/%s%s", prefix, videoID, ext)
 }
 
-func (cfg apiConfig) getS3URL(assetKey string) string {
-	return fmt.Sprintf(
-		"https://%s.s3.%s.amazonaws.com/%s",
-		cfg.s3Bucket, cfg.s3Region, assetKey,
-	)
+func (cfg apiConfig) getVideoURL(assetKey string) string {
+	return fmt.Sprintf("%s/%s", cfg.s3CfDistribution, assetKey)
 }

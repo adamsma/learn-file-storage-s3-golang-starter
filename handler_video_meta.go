@@ -95,12 +95,12 @@ func (cfg *apiConfig) handlerVideoGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// generate presigned url
-	video, err = cfg.dbVideoToSignedVideo(video)
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Unable to provide valid link to video", err)
-		return
-	}
+	// // generate presigned url
+	// video, err = cfg.dbVideoToSignedVideo(video)
+	// if err != nil {
+	// 	respondWithError(w, http.StatusInternalServerError, "Unable to provide valid link to video", err)
+	// 	return
+	// }
 
 	respondWithJSON(w, http.StatusOK, video)
 }
@@ -123,18 +123,18 @@ func (cfg *apiConfig) handlerVideosRetrieve(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	// generate presigned urls
-	for i, video := range videos {
+	// // generate presigned urls
+	// for i, video := range videos {
 
-		video, err = cfg.dbVideoToSignedVideo(video)
-		if err != nil {
-			respondWithError(w, http.StatusInternalServerError, "Unable to provide valid link to video", err)
-			return
-		}
+	// 	video, err = cfg.dbVideoToSignedVideo(video)
+	// 	if err != nil {
+	// 		respondWithError(w, http.StatusInternalServerError, "Unable to provide valid link to video", err)
+	// 		return
+	// 	}
 
-		videos[i] = video
+	// 	videos[i] = video
 
-	}
+	// }
 
 	respondWithJSON(w, http.StatusOK, videos)
 }
