@@ -138,11 +138,19 @@ func (cfg *apiConfig) handlerUploadVideo(w http.ResponseWriter, r *http.Request)
 	cfg.s3Client.PutObject(r.Context(), &params)
 
 	// update metadata
-	videoURL := cfg.getS3URL(assetKey)
+	videoURL := cfg.s3Bucket + "," + assetKey //cfg.getS3URL(assetKey)
 	videoMeta.VideoURL = &videoURL
+
 	err = cfg.db.UpdateVideo(videoMeta)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't update video metadata", err)
+		return
+	}
+
+	// generate presigned url
+	videoMeta, err = cfg.dbVideoToSignedVideo(videoMeta)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Unable to provide valid link to video", err)
 		return
 	}
 
